@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>רשימת קניות</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --text: #222;
+      --muted: #666;
+      --border: #e3e3e3;
+      --primary: #1976d2;
+      --primary-contrast: #fff;
+      --accent: #2e7d32;
+      --danger: #c62828;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Hebrew", Arial, sans-serif;
+    }
+    .container {
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      letter-spacing: 0.3px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button, .btn {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: 0.15s ease;
+    }
+    button.primary {
+      background: var(--primary);
+      color: var(--primary-contrast);
+      border-color: var(--primary);
+    }
+    button:hover {
+      filter: brightness(0.97);
+    }
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    button.accent {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .add-form {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 140px auto;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: end;
+    }
+    @media (max-width: 700px) {
+      .add-form {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .add-form .full {
+        grid-column: 1 / -1;
+      }
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    thead th {
+      background: #f3f5f7;
+      color: #111;
+      text-align: right;
+      font-weight: 600;
+      padding: 12px;
+      font-size: 0.95rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr:hover {
+      background: #fafcfe;
+    }
+    .qty-control {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .qty-control button {
+      border: none;
+      background: #f6f7f9;
+      padding: 6px 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .qty-control input {
+      width: 72px;
+      text-align: center;
+      border: none;
+      border-right: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+      padding: 6px;
+    }
+    .saved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e8f5e9;
+      color: #1b5e20;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid #c8e6c9;
+    }
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .dept-tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef3ff;
+      border: 1px solid #d9e5ff;
+      color: #1a3a8a;
+      font-weight: 600;
+      font-size: 0.86rem;
+    }
+    tfoot td {
+      padding: 12px;
+      background: #f9fafb;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    .help {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>רשימת קניות</h1>
+      <div class="toolbar">
+        <button id="clearCountsBtn" class="accent" title="מאפס את הכמות לכל הפריטים לריק">איפוס כל הכמויות</button>
+        <button id="removeUnsavedBtn" class="danger" title="מוחק מהרשימה פריטים שלא סומנו ב‑✓">מחק פריטים שלא מסומנים ב‑✓</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <form id="addForm" class="add-form" autocomplete="off">
+        <div>
+          <label for="itemName">שם פריט</label>
+          <input id="itemName" name="name" type="text" placeholder="לדוגמה: חלב 3% / עגבניות" required />
+        </div>
+        <div>
+          <label for="itemDept">מחלקה</label>
+          <select id="itemDept" name="dept" required>
+            <option value="" disabled selected>בחר מחלקה…</option>
+            <option>פירות וירקות</option>
+            <option>לחם ומאפים</option>
+            <option>מוצרי חלב</option>
+            <option>ביצים</option>
+            <option>בשר ודגים</option>
+            <option>קפואים</option>
+            <option>שימורים ויבשים</option>
+            <option>משקאות</option>
+            <option>ניקיון ונייר</option>
+            <option>טיפוח והיגיינה</option>
+            <option>לתינוקות</option>
+            <option>לחיות מחמד</option>
+            <option>בית וגינה</option>
+            <option>אחר</option>
+          </select>
+        </div>
+        <div>
+          <label for="itemQty">כמות</label>
+          <input id="itemQty" name="qty" type="number" min="0" step="1" value="0" />
+        </div>
+        <div class="full">
+          <button type="submit" class="primary">הוסף פריט</button>
+        </div>
+      </form>
+
+      <div class="help">
+        טיפ: סמן <strong>✓ שמור</strong> לפריטים קבועים (למשל חלב, לחם). כפתור <em>מחק פריטים שלא מסומנים ב‑✓</em> ינקה פריטים זמניים לקראת הרשימה הבאה.
+      </div>
+    </section>
+
+    <section style="margin-top:16px;">
+      <table aria-label="טבלת רשימת קניות">
+        <thead>
+          <tr>
+            <th style="width: 34%;">פריט</th>
+            <th style="width: 20%;">מחלקה</th>
+            <th style="width: 26%;">כמות</th>
+            <th style="width: 10%;">✓ שמור</th>
+            <th style="width: 10%;">פעולות</th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody">
+          <!-- שורות נוצרות דינמית -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              <span id="summary" class="muted">—</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    // ========= נתונים ושמירה =========
+    const STORAGE_KEY = 'groceryList_v1';
+
+    /** טוען רשימת פריטים מ-localStorage או יוצר רשימת דוגמה בהפעלה ראשונה */
+    function loadItems() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          if (Array.isArray(data)) return data;
+        } catch (e) {}
+      }
+      // זריעה ראשונית (ניתן לשנות/להסיר)
+      const seed = [
+        { id: uid(), name: 'חלב 3%', dept: 'מוצרי חלב', qty: 0, saved: false },
+        { id: uid(), name: 'לחם פרוס', dept: 'לחם ומאפים', qty: 0, saved: false },
+        { id: uid(), name: 'ביצים (12)', dept: 'ביצים', qty: 0, saved: false },
+        { id: uid(), name: 'גבינה צהובה', dept: 'מוצרי חלב', qty: 0, saved: false },
+        { id: uid(), name: 'עגבניות', dept: 'פירות וירקות', qty: 0, saved: false },
+        { id: uid(), name: 'מלפפונים', dept: 'פירות וירקות', qty: 0, saved: false },
+        { id: uid(), name: 'שמן זית', dept: 'שימורים ויבשים', qty: 0, saved: false },
+        { id: uid(), name: 'פסטה', dept: 'שימורים ויבשים', qty: 0, saved: false },
+        { id: uid(), name: 'אורז', dept: 'שימורים ויבשים', qty: 0, saved: false },
+        { id: uid(), name: 'נייר טואלט', dept: 'ניקיון ונייר', qty: 0, saved: false },
+        { id: uid(), name: 'סבון כלים', dept: 'ניקיון ונייר', qty: 0, saved: false },
+      ];
+      saveItems(seed);
+      return seed;
+    }
+
+    function saveItems(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function uid() {
+      return 'id_' + Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+    }
+
+    // ========= מצב אפליקציה =========
+    let items = loadItems();
+
+    // ========= עיבוד והצגה =========
+    const itemsBody = document.getElementById('itemsBody');
+    const summaryEl = document.getElementById('summary');
+
+    function sortItems(a, b) {
+      // מיון לפי מחלקה ואז שם פריט (אלפביתי)
+      const d = a.dept.localeCompare(b.dept, 'he');
+      if (d !== 0) return d;
+      return a.name.localeCompare(b.name, 'he');
+    }
+
+    function render() {
+      items.sort(sortItems);
+      itemsBody.innerHTML = '';
+
+      let totalItems = items.length;
+      let totalQty = items.reduce((acc, it) => acc + (Number(it.qty) || 0), 0);
+
+      for (const it of items) {
+        const tr = document.createElement('tr');
+
+        // פריט
+        const tdName = document.createElement('td');
+        tdName.textContent = it.name;
+        tr.appendChild(tdName);
+
+        // מחלקה
+        const tdDept = document.createElement('td');
+        const dept = document.createElement('span');
+        dept.className = 'dept-tag';
+        dept.textContent = it.dept || '—';
+        tdDept.appendChild(dept);
+        tr.appendChild(tdDept);
+
+        // כמות
+        const tdQty = document.createElement('td');
+        const qc = document.createElement('div');
+        qc.className = 'qty-control';
+        const btnMinus = document.createElement('button');
+        btnMinus.type = 'button';
+        btnMinus.setAttribute('aria-label', 'הפחת כמות');
+        btnMinus.textContent = '−';
+        const inputQty = document.createElement('input');
+        inputQty.type = 'number';
+        inputQty.min = '0';
+        inputQty.step = '1';
+        inputQty.value = Number(it.qty) || 0;
+        const btnPlus = document.createElement('button');
+        btnPlus.type = 'button';
+        btnPlus.setAttribute('aria-label', 'הוסף כמות');
+        btnPlus.textContent = '+';
+        qc.appendChild(btnMinus);
+        qc.appendChild(inputQty);
+        qc.appendChild(btnPlus);
+        tdQty.appendChild(qc);
+        tr.appendChild(tdQty);
+
+        btnMinus.addEventListener('click', () => {
+          const v = Math.max(0, Number(inputQty.value || 0) - 1);
+          inputQty.value = v;
+          updateQty(it.id, v);
+        });
+        btnPlus.addEventListener('click', () => {
+          const v = Math.max(0, Number(inputQty.value || 0) + 1);
+          inputQty.value = v;
+          updateQty(it.id, v);
+        });
+        inputQty.addEventListener('change', () => {
+          let v = Number(inputQty.value);
+          if (!Number.isFinite(v) || v < 0) v = 0;
+          inputQty.value = v;
+          updateQty(it.id, v);
+        });
+
+        // שמור ✓
+        const tdSaved = document.createElement('td');
+        const savedWrap = document.createElement('label');
+        savedWrap.className = 'saved-badge';
+        const savedChk = document.createElement('input');
+        savedChk.type = 'checkbox';
+        savedChk.checked = !!it.saved;
+        savedChk.style.accentColor = '#2e7d32';
+        savedChk.ariaLabel = 'סמן לשמירה לקראת הקנייה הבאה';
+        const savedTxt = document.createElement('span');
+        savedTxt.textContent = '✓ שמור';
+        savedWrap.appendChild(savedChk);
+        savedWrap.appendChild(savedTxt);
+        tdSaved.appendChild(savedWrap);
+        tr.appendChild(tdSaved);
+
+        savedChk.addEventListener('change', () => {
+          toggleSaved(it.id, savedChk.checked);
+        });
+
+        // פעולות
+        const tdActions = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'row-actions';
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'btn';
+        delBtn.title = 'מחק פריט זה';
+        delBtn.textContent = '🗑️ מחק';
+        delBtn.addEventListener('click', () => {
+          removeItem(it.id);
+        });
+        actions.appendChild(delBtn);
+        tdActions.appendChild(actions);
+        tr.appendChild(tdActions);
+
+        itemsBody.appendChild(tr);
+      }
+
+      // סיכום
+      summaryEl.textContent = `סה״כ פריטים: ${totalItems} • סה״כ כמויות: ${totalQty}`;
+    }
+
+    function updateQty(id, qty) {
+      const idx = items.findIndex(x => x.id === id);
+      if (idx >= 0) {
+        items[idx].qty = Number(qty) || 0;
+        saveItems(items);
+        renderSummaryOnly();
+      }
+    }
+
+    function toggleSaved(id, saved) {
+      const idx = items.findIndex(x => x.id === id);
+      if (idx >= 0) {
+        items[idx].saved = !!saved;
+        saveItems(items);
+      }
+    }
+
+    function removeItem(id) {
+      items = items.filter(x => x.id !== id);
+      saveItems(items);
+      render();
+    }
+
+    function renderSummaryOnly() {
+      // מעדכן רק את השורה התחתונה ללא רנדר מלא
+      const totalItems = items.length;
+      const totalQty = items.reduce((acc, it) => acc + (Number(it.qty) || 0), 0);
+      summaryEl.textContent = `סה״כ פריטים: ${totalItems} • סה״כ כמויות: ${totalQty}`;
+    }
+
+    // ========= הוספת פריט =========
+    const addForm = document.getElementById('addForm');
+    addForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(addForm);
+      const name = (fd.get('name') || '').toString().trim();
+      const dept = (fd.get('dept') || '').toString().trim();
+      let qty = Number(fd.get('qty') || 0);
+      if (!name || !dept) return;
+
+      if (!Number.isFinite(qty) || qty < 0) qty = 0;
+
+      items.push({
+        id: uid(),
+        name,
+        dept,
+        qty,
+        saved: false, // ברירת מחדל: לא שמור עד שסומן ✓
+      });
+      saveItems(items);
+      addForm.reset();
+      // מחזיר את הסלקט למצב 'בחר מחלקה…'
+      const sel = document.getElementById('itemDept');
+      sel.selectedIndex = 0;
+      render();
+      document.getElementById('itemName').focus();
+    });
+
+    // ========= פעולות על כל הרשימה =========
+    document.getElementById('clearCountsBtn').addEventListener('click', () => {
+      if (!items.length) return;
+      for (const it of items) it.qty = 0;
+      saveItems(items);
+      render();
+    });
+
+    document.getElementById('removeUnsavedBtn').addEventListener('click', () => {
+      if (!items.length) return;
+      const before = items.length;
+      items = items.filter(it => !!it.saved);
+      const removed = before - items.length;
+      saveItems(items);
+      render();
+      if (removed > 0) {
+        // משוב קל בקונסולה; אפשר להחליף לטוסט/התראה אם תרצה
+        console.info(`הוסרו ${removed} פריטים שלא היו מסומנים ב‑✓`);
+      }
+    });
+
+    // אפשרות הוספה מהירה עם Enter בשדה השם
+    document.getElementById('itemName').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addForm.requestSubmit();
+      }
+    });
+
+    // רנדר ראשוני
+    render();
+  </script>
+</body>
+</html>
