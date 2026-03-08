@@ -1,379 +1,285 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>רשימת קניות</title>
-
-<style>
-    :root {
-        --primary: #2563eb;
-        --primary-light: #dbeafe;
-        --accent: #22c55e;
-        --bg: #eef2f7;
-        --card-bg: #ffffff;
-        --text-main: #111827;
-        --text-muted: #6b7280;
-        --danger: #ef4444;
-    }
-
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        margin: 0;
-        padding: 16px;
-        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        background: radial-gradient(circle at top, #e0f2fe 0, #eef2f7 45%, #e5e7eb 100%);
-        color: var(--text-main);
-    }
-
-    .app {
-        max-width: 640px;
-        margin: 0 auto;
-    }
-
-    .header {
-        text-align: center;
-        margin-bottom: 16px;
-    }
-
-    .title {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    .subtitle {
-        margin: 4px 0 0;
-        font-size: 14px;
-        color: var(--text-muted);
-    }
-
-    .card {
-        background: var(--card-bg);
-        border-radius: 18px;
-        padding: 16px;
-        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
-        margin-bottom: 16px;
-    }
-
-    .toolbar {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-
-    .toolbar button {
-        flex: 1;
-    }
-
-    /* Updated Responsive Row */
-    .input-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-        flex-wrap: wrap; 
-    }
-
-    input, select {
-        flex: 1;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid #d1d5db;
-        font-size: 15px;
-        outline: none;
-        background: #f9fafb;
-        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    }
-
-    /* Fixed Widths for Inputs */
-    #itemInput {
-        flex: 3;
-        min-width: 120px;
-    }
-
-    #qtyInput {
-        flex: 1;
-        min-width: 60px;
-        max-width: 80px;
-    }
-
-    #categorySelect {
-        flex: 2;
-        min-width: 140px;
-    }
-
-    input:focus, select:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        background: #ffffff;
-    }
-
-    button {
-        padding: 10px 14px;
-        border-radius: 999px;
-        border: none;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        white-space: nowrap;
-    }
-
-    button:active {
-        transform: translateY(1px);
-        box-shadow: none;
-    }
-
-    .btn-primary {
-        background: var(--primary);
-        color: white;
-        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
-    }
-
-    .btn-primary:hover {
-        background: #1d4ed8;
-    }
-
-    .btn-danger {
-        background: var(--danger);
-        color: white;
-        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.35);
-    }
-
-    .btn-ghost {
-        background: #f3f4f6;
-        color: var(--text-main);
-    }
-
-    .section-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-muted);
-        margin: 0 0 8px;
-    }
-
-    ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    li {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 14px;
-        padding: 12px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-        min-height: 52px; /* Better for mobile touch */
-    }
-
-    li.checked {
-        text-decoration: line-through;
-        background: #e5e7eb;
-        color: #6b7280;
-        box-shadow: none;
-    }
-
-    .item-main {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .item-name {
-        font-weight: 600;
-        font-size: 15px;
-    }
-
-    .item-meta {
-        font-size: 12px;
-        color: var(--text-muted);
-        display: flex;
-        gap: 6px;
-        align-items: center;
-    }
-
-    .chip {
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: var(--primary-light);
-        color: #1d4ed8;
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 16px;
-        color: var(--text-muted);
-        font-size: 14px;
-    }
-
-    /* Mobile Overrides */
-    @media (max-width: 480px) {
-        body { padding: 12px; }
-        .card { padding: 14px; border-radius: 16px; }
-        .title { font-size: 24px; }
-        
-        .input-row:nth-of-type(2) {
-            flex-direction: column;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>רשימת קניות</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --accent: #22c55e;
+            --bg: #eef2f7;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
         }
-        .input-row:nth-of-type(2) button, 
-        .input-row:nth-of-type(2) select {
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top, #e0f2fe 0, #eef2f7 45%, #e5e7eb 100%);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .app { max-width: 500px; margin: 0 auto; }
+
+        .header { text-align: center; margin-bottom: 20px; }
+        .title { font-size: 26px; font-weight: 800; margin: 0; color: #1e3a8a; }
+        .subtitle { margin: 5px 0 0; font-size: 13px; color: var(--text-muted); }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+        }
+
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .toolbar button { flex: 1; }
+
+        /* --- THE FIX: Better Row Logic --- */
+        .input-group { margin-bottom: 15px; }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
             width: 100%;
         }
-    }
-</style>
-</head>
 
+        input, select {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            font-size: 16px; /* Prevents iOS zoom */
+            background: #f9fafb;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        /* Specific sizing to fix your screenshot */
+        #itemInput { flex: 1; min-width: 0; }
+        #qtyInput { width: 70px; text-align: center; }
+        #categorySelect { flex: 1; min-width: 0; }
+        #newCategoryInput { flex: 1; min-width: 0; }
+
+        button {
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-ghost { background: #f3f4f6; color: var(--text-main); }
+
+        .section-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            margin-right: 4px;
+        }
+
+        /* --- List Styling --- */
+        ul { list-style: none; padding: 0; margin: 0; }
+        li {
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            border-radius: 15px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        li.checked { opacity: 0.6; background: #f8fafc; }
+        li.checked .item-name { text-decoration: line-through; color: var(--text-muted); }
+
+        .item-info { display: flex; flex-direction: column; gap: 4px; }
+        .item-name { font-weight: 700; font-size: 16px; }
+        .item-tags { display: flex; gap: 8px; align-items: center; }
+        .chip { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .qty-tag { font-size: 12px; color: var(--text-muted); }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 400px) {
+            .input-row.stack-mobile {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .input-row.stack-mobile button { width: 100%; }
+            .header .title { font-size: 22px; }
+        }
+    </style>
+</head>
 <body>
+
 <div class="app">
     <header class="header">
         <h1 class="title">רשימת קניות</h1>
-        <p class="subtitle">הוסף פריטים וסמן מה שנקנה</p>
+        <p class="subtitle">הוסף פריטים, והכל נשמר בגוגל שיטס</p>
     </header>
 
     <div class="card">
         <div class="toolbar">
-            <button id="clearBtn" class="btn-danger">נקה הכל (למעט ✓)</button>
+            <button id="clearBtn" class="btn-danger">נקה הכל (✓)</button>
             <button class="btn-ghost" onclick="loadData()">רענן</button>
         </div>
 
-        <p class="section-title">הוספת פריט</p>
-        <div class="input-row">
-            <input id="itemInput" type="text" placeholder="שם פריט">
-            <input id="qtyInput" type="number" placeholder="כמות" min="1" value="1">
+        <div class="input-group">
+            <span class="section-label">הוספת פריט</span>
+            <div class="input-row" style="margin-bottom: 10px;">
+                <input id="itemInput" type="text" placeholder="שם פריט (למשל: חלב)">
+                <input id="qtyInput" type="number" value="1" min="1">
+            </div>
+            <div class="input-row stack-mobile">
+                <select id="categorySelect">
+                    <option value="">טוען קטגוריות...</option>
+                </select>
+                <button class="btn-primary" onclick="addItem()">הוסף פריט</button>
+            </div>
         </div>
 
-        <div class="input-row">
-            <select id="categorySelect">
-                <option value="">טוען קטגוריות...</option>
-            </select>
-            <button class="btn-primary" onclick="addItem()">הוסף פריט</button>
-        </div>
-
-        <p class="section-title">קטגוריות</p>
-        <div class="input-row">
-            <input id="newCategoryInput" type="text" placeholder="קטגוריה חדשה">
-            <button class="btn-ghost" onclick="addCategory()">הוסף</button>
+        <div class="input-group" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+            <span class="section-label">ניהול קטגוריות</span>
+            <div class="input-row stack-mobile">
+                <input id="newCategoryInput" type="text" placeholder="קטגוריה חדשה">
+                <button class="btn-ghost" onclick="addCategory()">הוסף</button>
+            </div>
         </div>
     </div>
 
     <div class="card">
-        <p class="section-title">הפריטים שלך</p>
+        <span class="section-label">הפריטים שלך</span>
         <ul id="itemList"></ul>
-        <div id="emptyState" class="empty-state" style="display:none;">
-            אין עדיין פריטים ברשימה.
+        <div id="emptyState" style="text-align:center; padding: 20px; color: #94a3b8; font-size: 14px;">
+            הרשימה ריקה...
         </div>
     </div>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzukGRxVhXVJhK5HW3mcKMCxn-eEDtH4H-10bVD-CsMIJZN5cqFC6RTXiSlQe_3Kxg/exec";
+    // Replace this with your actual Web App URL from Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbzukGRxVhXVJhK5HW3mcKMCxn-eEDtH4H-10bVD-CsMIJZN5cqFC6RTXiSlQe_3Kxg/exec";
 
-async function loadData() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        window.categories = data.categories || [];
-        window.items = data.items || [];
-        renderCategories();
-        renderItems();
-    } catch (err) {
-        console.error("Load error:", err);
+    async function loadData() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            window.categories = data.categories || [];
+            window.items = data.items || [];
+            renderCategories();
+            renderItems();
+        } catch (err) {
+            console.error("Error loading:", err);
+        }
     }
-}
 
-function renderCategories() {
-    const select = document.getElementById("categorySelect");
-    select.innerHTML = "";
-    if (window.categories.length === 0) {
-        select.innerHTML = '<option value="">אין קטגוריות</option>';
-        return;
+    function renderCategories() {
+        const select = document.getElementById("categorySelect");
+        select.innerHTML = "";
+        if (window.categories.length === 0) {
+            select.innerHTML = '<option value="">אין קטגוריות</option>';
+            return;
+        }
+        window.categories.forEach(cat => {
+            const opt = document.createElement("option");
+            opt.value = cat; opt.textContent = cat;
+            select.appendChild(opt);
+        });
     }
-    window.categories.forEach(cat => {
-        const opt = document.createElement("option");
-        opt.value = cat; opt.textContent = cat;
-        select.appendChild(opt);
-    });
-}
 
-function renderItems() {
-    const list = document.getElementById("itemList");
-    const emptyState = document.getElementById("emptyState");
-    list.innerHTML = "";
-    if (!window.items || window.items.length === 0) {
-        emptyState.style.display = "block";
-        return;
-    }
-    emptyState.style.display = "none";
-    window.items.forEach((item, index) => {
-        const li = document.createElement("li");
-        if (item.Keep) li.classList.add("checked");
-        li.innerHTML = `
-            <div class="item-main">
-                <span class="item-name">${item.Item}</span>
-                <div class="item-meta">
-                    <span class="chip">${item.Category || "כללי"}</span>
-                    <span class="qty">כמות: ${item.Quantity || 1}</span>
+    function renderItems() {
+        const list = document.getElementById("itemList");
+        const empty = document.getElementById("emptyState");
+        list.innerHTML = "";
+        
+        if (!window.items || window.items.length === 0) {
+            empty.style.display = "block";
+            return;
+        }
+        empty.style.display = "none";
+
+        window.items.forEach((item, index) => {
+            const li = document.createElement("li");
+            if (item.Keep) li.classList.add("checked");
+            
+            li.innerHTML = `
+                <div class="item-info">
+                    <span class="item-name">${item.Item}</span>
+                    <div class="item-tags">
+                        <span class="chip">${item.Category || "כללי"}</span>
+                        <span class="qty-tag">כמות: ${item.Quantity || 1}</span>
+                    </div>
                 </div>
-            </div>`;
-        li.onclick = () => toggleItem(index);
-        list.appendChild(li);
-    });
-}
+            `;
+            li.onclick = () => toggleItem(index);
+            list.appendChild(li);
+        });
+    }
 
-// POST Helper to avoid CORS issues with Apps Script
-async function postData(payload) {
-    await fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(payload)
-    });
-    // Give GS a moment to process before refreshing
-    setTimeout(loadData, 600);
-}
+    async function postAction(payload) {
+        // We use 'no-cors' for POST to avoid pre-flight issues with Google Script
+        await fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(payload)
+        });
+        setTimeout(loadData, 500);
+    }
 
-async function addItem() {
-    const item = document.getElementById("itemInput").value.trim();
-    const qty = document.getElementById("qtyInput").value || 1;
-    const cat = document.getElementById("categorySelect").value;
-    if (!item) return alert("הזן שם פריט");
+    async function addItem() {
+        const item = document.getElementById("itemInput").value.trim();
+        const qty = document.getElementById("qtyInput").value;
+        const cat = document.getElementById("categorySelect").value;
+        if (!item) return;
+        
+        document.getElementById("itemInput").value = "";
+        await postAction({ action: "addItem", item, qty, cat });
+    }
 
-    await postData({ action: "addItem", item, qty, cat });
-    document.getElementById("itemInput").value = "";
-}
+    async function toggleItem(index) {
+        await postAction({ action: "toggleItem", index });
+    }
 
-async function toggleItem(index) {
-    await postData({ action: "toggleItem", index });
-}
+    async function addCategory() {
+        const cat = document.getElementById("newCategoryInput").value.trim();
+        if (!cat) return;
+        document.getElementById("newCategoryInput").value = "";
+        await postAction({ action: "addCategory", category: cat });
+    }
 
-async function addCategory() {
-    const category = document.getElementById("newCategoryInput").value.trim();
-    if (!category) return;
-    await postData({ action: "addCategory", category });
-    document.getElementById("newCategoryInput").value = "";
-}
+    async function clearAll() {
+        if (confirm("למחוק את כל המסומנים?")) {
+            await postAction({ action: "clearAll" });
+        }
+    }
 
-async function clearAll() {
-    if (!confirm("למחוק פריטים שלא סומנו?")) return;
-    await postData({ action: "clearAll" });
-}
-
-document.getElementById("clearBtn").onclick = clearAll;
-loadData();
+    document.getElementById("clearBtn").onclick = clearAll;
+    loadData();
 </script>
+
 </body>
 </html>
