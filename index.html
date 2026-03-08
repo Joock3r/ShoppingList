@@ -370,8 +370,13 @@ async function addItem() {
     }
 
     try {
+        // Change: Added 'method', 'body', and redirected the fetch
         await fetch(API_URL, {
             method: "POST",
+            mode: "no-cors", // This is often necessary for GAS POST requests
+            headers: {
+                "Content-Type": "text/plain", // Use text/plain to avoid CORS pre-flight
+            },
             body: JSON.stringify({
                 action: "addItem",
                 item,
@@ -380,9 +385,14 @@ async function addItem() {
             })
         });
 
+        // Since 'no-cors' won't let us read the response, 
+        // we just assume success and reload the data.
         document.getElementById("itemInput").value = "";
         document.getElementById("qtyInput").value = 1;
-        await loadData();
+        
+        // Wait a second for Google's servers to catch up before refreshing
+        setTimeout(loadData, 500); 
+        
     } catch (err) {
         console.error("Error adding item:", err);
         alert("שגיאה בהוספת פריט.");
@@ -459,3 +469,4 @@ loadData();
 
 </body>
 </html>
+
