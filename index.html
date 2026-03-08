@@ -69,10 +69,12 @@
         flex: 1;
     }
 
+    /* Updated Responsive Row */
     .input-row {
         display: flex;
         gap: 8px;
         margin-bottom: 10px;
+        flex-wrap: wrap; 
     }
 
     input, select {
@@ -84,6 +86,23 @@
         outline: none;
         background: #f9fafb;
         transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    /* Fixed Widths for Inputs */
+    #itemInput {
+        flex: 3;
+        min-width: 120px;
+    }
+
+    #qtyInput {
+        flex: 1;
+        min-width: 60px;
+        max-width: 80px;
+    }
+
+    #categorySelect {
+        flex: 2;
+        min-width: 140px;
     }
 
     input:focus, select:focus {
@@ -128,18 +147,9 @@
         box-shadow: 0 10px 20px rgba(239, 68, 68, 0.35);
     }
 
-    .btn-danger:hover {
-        background: #dc2626;
-    }
-
     .btn-ghost {
         background: #f3f4f6;
         color: var(--text-main);
-        box-shadow: none;
-    }
-
-    .btn-ghost:hover {
-        background: #e5e7eb;
     }
 
     .section-title {
@@ -158,19 +168,14 @@
     li {
         background: rgba(255, 255, 255, 0.9);
         border-radius: 14px;
-        padding: 10px 12px;
+        padding: 12px;
         margin-bottom: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
-        transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
         box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-    }
-
-    li:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        min-height: 52px; /* Better for mobile touch */
     }
 
     li.checked {
@@ -208,10 +213,6 @@
         font-weight: 600;
     }
 
-    .qty {
-        font-size: 12px;
-    }
-
     .empty-state {
         text-align: center;
         padding: 16px;
@@ -219,13 +220,18 @@
         font-size: 14px;
     }
 
+    /* Mobile Overrides */
     @media (max-width: 480px) {
-        .card {
-            border-radius: 16px;
-            padding: 14px;
+        body { padding: 12px; }
+        .card { padding: 14px; border-radius: 16px; }
+        .title { font-size: 24px; }
+        
+        .input-row:nth-of-type(2) {
+            flex-direction: column;
         }
-        .title {
-            font-size: 24px;
+        .input-row:nth-of-type(2) button, 
+        .input-row:nth-of-type(2) select {
+            width: 100%;
         }
     }
 </style>
@@ -233,24 +239,18 @@
 
 <body>
 <div class="app">
-
     <header class="header">
         <h1 class="title">רשימת קניות</h1>
-        <p class="subtitle">הוסף פריטים, סמן מה נקנה, והכל נשמר בגוגל שיטס</p>
+        <p class="subtitle">הוסף פריטים וסמן מה שנקנה</p>
     </header>
 
     <div class="card">
         <div class="toolbar">
-            <button id="clearBtn" class="btn-danger">
-                נקה הכל (למעט ✓)
-            </button>
-            <button class="btn-ghost" onclick="loadData()">
-                רענן
-            </button>
+            <button id="clearBtn" class="btn-danger">נקה הכל (למעט ✓)</button>
+            <button class="btn-ghost" onclick="loadData()">רענן</button>
         </div>
 
         <p class="section-title">הוספת פריט</p>
-
         <div class="input-row">
             <input id="itemInput" type="text" placeholder="שם פריט">
             <input id="qtyInput" type="number" placeholder="כמות" min="1" value="1">
@@ -264,10 +264,9 @@
         </div>
 
         <p class="section-title">קטגוריות</p>
-
         <div class="input-row">
-            <input id="newCategoryInput" type="text" placeholder="הוסף קטגוריה חדשה (למשל: ירקות)">
-            <button class="btn-ghost" onclick="addCategory()">הוסף קטגוריה</button>
+            <input id="newCategoryInput" type="text" placeholder="קטגוריה חדשה">
+            <button class="btn-ghost" onclick="addCategory()">הוסף</button>
         </div>
     </div>
 
@@ -275,198 +274,106 @@
         <p class="section-title">הפריטים שלך</p>
         <ul id="itemList"></ul>
         <div id="emptyState" class="empty-state" style="display:none;">
-            אין עדיין פריטים ברשימה. התחל בלכתוב פריט למעלה ולהוסיף אותו.
+            אין עדיין פריטים ברשימה.
         </div>
     </div>
-
 </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzukGRxVhXVJhK5HW3mcKMCxn-eEDtH4H-10bVD-CsMIJZN5cqFC6RTXiSlQe_3Kxg/exec";
 
-// Load data from Google Sheets
 async function loadData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-
-        console.log("Data from server:", data);
-
         window.categories = data.categories || [];
         window.items = data.items || [];
-
         renderCategories();
         renderItems();
     } catch (err) {
-        console.error("Error loading data:", err);
-        alert("שגיאה בטעינת הנתונים. בדוק את כתובת ה-API או את הסקריפט.");
+        console.error("Load error:", err);
     }
 }
 
-// Render categories in dropdown
 function renderCategories() {
     const select = document.getElementById("categorySelect");
     select.innerHTML = "";
-
-    if (!window.categories || window.categories.length === 0) {
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "אין קטגוריות (בדוק את הגיליון)";
-        select.appendChild(opt);
+    if (window.categories.length === 0) {
+        select.innerHTML = '<option value="">אין קטגוריות</option>';
         return;
     }
-
     window.categories.forEach(cat => {
         const opt = document.createElement("option");
-        opt.value = cat;
-        opt.textContent = cat;
+        opt.value = cat; opt.textContent = cat;
         select.appendChild(opt);
     });
 }
 
-// Render items list
 function renderItems() {
     const list = document.getElementById("itemList");
     const emptyState = document.getElementById("emptyState");
     list.innerHTML = "";
-
     if (!window.items || window.items.length === 0) {
         emptyState.style.display = "block";
         return;
-    } else {
-        emptyState.style.display = "none";
     }
-
+    emptyState.style.display = "none";
     window.items.forEach((item, index) => {
         const li = document.createElement("li");
-
-        const keepVal = item.Keep === true || item.Keep === "TRUE";
-        if (keepVal) li.classList.add("checked");
-
+        if (item.Keep) li.classList.add("checked");
         li.innerHTML = `
             <div class="item-main">
                 <span class="item-name">${item.Item}</span>
                 <div class="item-meta">
-                    <span class="chip">${item.Category || "ללא קטגוריה"}</span>
+                    <span class="chip">${item.Category || "כללי"}</span>
                     <span class="qty">כמות: ${item.Quantity || 1}</span>
                 </div>
-            </div>
-        `;
-
+            </div>`;
         li.onclick = () => toggleItem(index);
         list.appendChild(li);
     });
 }
 
-// Add item
+// POST Helper to avoid CORS issues with Apps Script
+async function postData(payload) {
+    await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+    });
+    // Give GS a moment to process before refreshing
+    setTimeout(loadData, 600);
+}
+
 async function addItem() {
     const item = document.getElementById("itemInput").value.trim();
     const qty = document.getElementById("qtyInput").value || 1;
     const cat = document.getElementById("categorySelect").value;
+    if (!item) return alert("הזן שם פריט");
 
-    if (!item) {
-        alert("נא להזין שם פריט.");
-        return;
-    }
-
-    try {
-        // Change: Added 'method', 'body', and redirected the fetch
-        await fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors", // This is often necessary for GAS POST requests
-            headers: {
-                "Content-Type": "text/plain", // Use text/plain to avoid CORS pre-flight
-            },
-            body: JSON.stringify({
-                action: "addItem",
-                item,
-                qty,
-                cat
-            })
-        });
-
-        // Since 'no-cors' won't let us read the response, 
-        // we just assume success and reload the data.
-        document.getElementById("itemInput").value = "";
-        document.getElementById("qtyInput").value = 1;
-        
-        // Wait a second for Google's servers to catch up before refreshing
-        setTimeout(loadData, 500); 
-        
-    } catch (err) {
-        console.error("Error adding item:", err);
-        alert("שגיאה בהוספת פריט.");
-    }
+    await postData({ action: "addItem", item, qty, cat });
+    document.getElementById("itemInput").value = "";
 }
 
-// Toggle item checked state
 async function toggleItem(index) {
-    try {
-        await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "toggleItem",
-                index
-            })
-        });
-
-        await loadData();
-    } catch (err) {
-        console.error("Error toggling item:", err);
-        alert("שגיאה בעדכון פריט.");
-    }
+    await postData({ action: "toggleItem", index });
 }
 
-// Add new category
 async function addCategory() {
-    const newCat = document.getElementById("newCategoryInput").value.trim();
-    if (!newCat) {
-        alert("נא להזין שם קטגוריה.");
-        return;
-    }
-
-    try {
-        await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "addCategory",
-                category: newCat
-            })
-        });
-
-        document.getElementById("newCategoryInput").value = "";
-        await loadData(); // refresh categories + items
-    } catch (err) {
-        console.error("Error adding category:", err);
-        alert("שגיאה בהוספת קטגוריה.");
-    }
+    const category = document.getElementById("newCategoryInput").value.trim();
+    if (!category) return;
+    await postData({ action: "addCategory", category });
+    document.getElementById("newCategoryInput").value = "";
 }
 
-// Clear all items except checked ones
 async function clearAll() {
-    if (!confirm("למחוק את כל הפריטים שאינם מסומנים ✓?")) return;
-
-    try {
-        await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "clearAll"
-            })
-        });
-
-        await loadData();
-    } catch (err) {
-        console.error("Error clearing items:", err);
-        alert("שגיאה בניקוי הרשימה.");
-    }
+    if (!confirm("למחוק פריטים שלא סומנו?")) return;
+    await postData({ action: "clearAll" });
 }
 
 document.getElementById("clearBtn").onclick = clearAll;
-
-// Initial load
 loadData();
 </script>
-
 </body>
 </html>
-
