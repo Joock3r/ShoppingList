@@ -2,7 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>רשימת קניות</title>
     <style>
         :root {
@@ -69,7 +70,7 @@
         }
 
         .collapse-content {
-            display: block; /* Default visible */
+            display: block;
             overflow: hidden;
         }
 
@@ -108,7 +109,11 @@
             transition: all 0.2s;
         }
 
-        input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        input:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
 
         #itemInput { flex: 1; min-width: 0; }
         #qtyInput { width: 70px; text-align: center; }
@@ -144,26 +149,46 @@
 
         /* --- List --- */
         ul { list-style: none; padding: 0; margin: 0; }
+
         li {
             background: #fff;
             border: 1px solid #f1f5f9;
-            border-radius: 15px;
-            padding: 14px;
-            margin-bottom: 10px;
+            border-radius: 12px;
+            padding: 8px 12px;          /* reduced height */
+            margin-bottom: 6px;         /* smaller gap */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
 
         li.checked { opacity: 0.6; background: #f8fafc; }
         li.checked .item-name { text-decoration: line-through; color: var(--text-muted); }
 
-        .item-info { display: flex; flex-direction: column; gap: 4px; }
-        .item-name { font-weight: 700; font-size: 16px; }
-        .item-tags { display: flex; gap: 8px; align-items: center; }
-        .chip { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-        .qty-tag { font-size: 12px; color: var(--text-muted); }
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;                   /* less vertical space */
+            width: 100%;
+        }
+
+        /* name + quantity on same line */
+        .item-row {
+            display: flex;
+            justify-content: space-between; /* in RTL: name on right, qty on left */
+            align-items: center;
+            width: 100%;
+        }
+
+        .item-name {
+            font-weight: normal;
+            font-size: 15px;
+        }
+
+        .qty-tag {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
 
         @media (max-width: 400px) {
             .input-row.stack-mobile {
@@ -228,12 +253,23 @@
 </div>
 
 <script>
-    // Paste your Apps Script URL here
     const API_URL = "https://script.google.com/macros/s/AKfycbzukGRxVhXVJhK5HW3mcKMCxn-eEDtH4H-10bVD-CsMIJZN5cqFC6RTXiSlQe_3Kxg/exec";
 
     function toggleAddSection() {
         const card = document.getElementById('addCard');
         card.classList.toggle('is-collapsed');
+    }
+
+    function getCategoryColor(cat) {
+        const palette = [
+            "#fee2e2", "#fef3c7", "#dcfce7",
+            "#e0f2fe", "#ede9fe", "#fce7f3"
+        ];
+        let hash = 0;
+        for (let i = 0; i < cat.length; i++) {
+            hash = (hash + cat.charCodeAt(i) * 17) % 1000;
+        }
+        return palette[hash % palette.length];
     }
 
     async function loadData() {
@@ -242,6 +278,9 @@
             const data = await res.json();
             window.categories = data.categories || [];
             window.items = data.items || [];
+
+            window.lastCategory = localStorage.getItem("lastCategory") || "";
+
             renderCategories();
             renderItems();
         } catch (err) {
@@ -252,68 +291,110 @@
     function renderCategories() {
         const select = document.getElementById("categorySelect");
         select.innerHTML = "";
-        if (window.categories.length === 0) {
+        if (!window.categories.length) {
             select.innerHTML = '<option value="">אין קטגוריות</option>';
             return;
         }
         window.categories.forEach(cat => {
             const opt = document.createElement("option");
-            opt.value = cat; opt.textContent = cat;
+            opt.value = cat;
+            opt.textContent = cat;
             select.appendChild(opt);
         });
+
+        if (window.lastCategory && window.categories.includes(window.lastCategory)) {
+            select.value = window.lastCategory;
+        }
     }
 
     function renderItems() {
         const list = document.getElementById("itemList");
         const empty = document.getElementById("emptyState");
         list.innerHTML = "";
-        
-        if (!window.items || window.items.length === 0) {
+
+        if (!window.items || !window.items.length) {
             empty.style.display = "block";
             return;
         }
         empty.style.display = "none";
 
+        const grouped = {};
         window.items.forEach((item, index) => {
-            const li = document.createElement("li");
-            if (item.Keep) li.classList.add("checked");
-            
-            li.innerHTML = `
-                <div class="item-info">
-                    <span class="item-name">${item.Item}</span>
-                    <div class="item-tags">
-                        <span class="chip">${item.Category || "כללי"}</span>
-                        <span class="qty-tag">כמות: ${item.Quantity || 1}</span>
+            const cat = item.Category || "ללא קטגוריה";
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push({ item, index });
+        });
+
+        const categories = Object.keys(grouped).sort((a, b) =>
+            a.localeCompare(b, "he")
+        );
+
+        categories.forEach(cat => {
+            const headerLi = document.createElement("li");
+            headerLi.style.background = getCategoryColor(cat);
+            headerLi.style.fontWeight = "bold";
+            headerLi.style.justifyContent = "flex-start";
+            headerLi.textContent = cat;
+            headerLi.onclick = null;
+            list.appendChild(headerLi);
+
+            grouped[cat].sort((a, b) =>
+                a.item.Item.localeCompare(b.item.Item, "he")
+            );
+
+            grouped[cat].forEach(({ item, index }) => {
+                const li = document.createElement("li");
+                if (item.Keep) li.classList.add("checked");
+
+                li.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-row">
+                            <span class="item-name">${item.Item}</span>
+                            <span class="qty-tag">כמות: ${item.Quantity}</span>
+                        </div>
                     </div>
-                </div>
-            `;
-            li.onclick = () => toggleItem(index);
-            list.appendChild(li);
+                `;
+                li.onclick = () => toggleItem(index);
+                list.appendChild(li);
+            });
         });
     }
 
     async function postAction(payload) {
-        await fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-        });
-        setTimeout(loadData, 500);
+        try {
+            await fetch(API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     async function addItem() {
         const item = document.getElementById("itemInput").value.trim();
         const qty = document.getElementById("qtyInput").value;
-        const cat = document.getElementById("categorySelect").value;
+        const select = document.getElementById("categorySelect");
+        const cat = select.value;
         if (!item) return;
-        
+
+        window.lastCategory = cat;
+        if (cat) {
+            localStorage.setItem("lastCategory", cat);
+        }
+
         document.getElementById("itemInput").value = "";
         await postAction({ action: "addItem", item, qty, cat });
     }
 
     async function toggleItem(index) {
-        await postAction({ action: "toggleItem", index });
+        if (window.items && window.items[index]) {
+            window.items[index].Keep = !window.items[index].Keep;
+            renderItems();
+        }
+        postAction({ action: "toggleItem", index });
     }
 
     async function addCategory() {
@@ -321,11 +402,13 @@
         if (!cat) return;
         document.getElementById("newCategoryInput").value = "";
         await postAction({ action: "addCategory", category: cat });
+        setTimeout(loadData, 500);
     }
 
     async function clearAll() {
         if (confirm("למחוק את כל המסומנים?")) {
             await postAction({ action: "clearAll" });
+            setTimeout(loadData, 500);
         }
     }
 
