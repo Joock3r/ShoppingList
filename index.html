@@ -39,12 +39,56 @@
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             margin-bottom: 16px;
+            transition: all 0.3s ease;
         }
 
+        /* --- Collapsible Logic --- */
+        .card-header-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding-bottom: 10px;
+        }
+
+        .card-header-toggle h2 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .collapse-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .collapse-content {
+            display: block; /* Default visible */
+            overflow: hidden;
+        }
+
+        .is-collapsed .collapse-content {
+            display: none;
+        }
+
+        .is-collapsed .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        .is-collapsed.card {
+            padding-bottom: 15px;
+        }
+
+        /* --- Controls & Inputs --- */
         .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
         .toolbar button { flex: 1; }
 
-        /* --- THE FIX: Better Row Logic --- */
         .input-group { margin-bottom: 15px; }
         
         .input-row {
@@ -58,7 +102,7 @@
             padding: 12px;
             border-radius: 12px;
             border: 1px solid #d1d5db;
-            font-size: 16px; /* Prevents iOS zoom */
+            font-size: 16px;
             background: #f9fafb;
             outline: none;
             transition: all 0.2s;
@@ -66,7 +110,6 @@
 
         input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
-        /* Specific sizing to fix your screenshot */
         #itemInput { flex: 1; min-width: 0; }
         #qtyInput { width: 70px; text-align: center; }
         #categorySelect { flex: 1; min-width: 0; }
@@ -82,7 +125,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s, opacity 0.2s;
+            transition: transform 0.1s;
         }
 
         button:active { transform: scale(0.98); }
@@ -99,7 +142,7 @@
             margin-right: 4px;
         }
 
-        /* --- List Styling --- */
+        /* --- List --- */
         ul { list-style: none; padding: 0; margin: 0; }
         li {
             background: #fff;
@@ -122,14 +165,12 @@
         .chip { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
         .qty-tag { font-size: 12px; color: var(--text-muted); }
 
-        /* --- Mobile Responsiveness --- */
         @media (max-width: 400px) {
             .input-row.stack-mobile {
                 flex-direction: column;
                 align-items: stretch;
             }
             .input-row.stack-mobile button { width: 100%; }
-            .header .title { font-size: 22px; }
         }
     </style>
 </head>
@@ -141,31 +182,38 @@
         <p class="subtitle">הוסף פריטים, והכל נשמר בגוגל שיטס</p>
     </header>
 
-    <div class="card">
-        <div class="toolbar">
-            <button id="clearBtn" class="btn-danger">נקה הכל (✓)</button>
-            <button class="btn-ghost" onclick="loadData()">רענן</button>
+    <div class="card" id="addCard">
+        <div class="card-header-toggle" onclick="toggleAddSection()">
+            <h2>הוספה וניהול</h2>
+            <span class="collapse-icon" id="colIcon">▲</span>
         </div>
-
-        <div class="input-group">
-            <span class="section-label">הוספת פריט</span>
-            <div class="input-row" style="margin-bottom: 10px;">
-                <input id="itemInput" type="text" placeholder="שם פריט (למשל: חלב)">
-                <input id="qtyInput" type="number" value="1" min="1">
+        
+        <div class="collapse-content">
+            <div class="toolbar">
+                <button id="clearBtn" class="btn-danger">נקה הכל (✓)</button>
+                <button class="btn-ghost" onclick="loadData()">רענן</button>
             </div>
-            <div class="input-row stack-mobile">
-                <select id="categorySelect">
-                    <option value="">טוען קטגוריות...</option>
-                </select>
-                <button class="btn-primary" onclick="addItem()">הוסף פריט</button>
-            </div>
-        </div>
 
-        <div class="input-group" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
-            <span class="section-label">ניהול קטגוריות</span>
-            <div class="input-row stack-mobile">
-                <input id="newCategoryInput" type="text" placeholder="קטגוריה חדשה">
-                <button class="btn-ghost" onclick="addCategory()">הוסף</button>
+            <div class="input-group">
+                <span class="section-label">הוספת פריט</span>
+                <div class="input-row" style="margin-bottom: 10px;">
+                    <input id="itemInput" type="text" placeholder="שם פריט">
+                    <input id="qtyInput" type="number" value="1" min="1">
+                </div>
+                <div class="input-row stack-mobile">
+                    <select id="categorySelect">
+                        <option value="">טוען קטגוריות...</option>
+                    </select>
+                    <button class="btn-primary" onclick="addItem()">הוסף פריט</button>
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                <span class="section-label">קטגוריה חדשה</span>
+                <div class="input-row stack-mobile">
+                    <input id="newCategoryInput" type="text" placeholder="למשל: ירקות">
+                    <button class="btn-ghost" onclick="addCategory()">הוסף</button>
+                </div>
             </div>
         </div>
     </div>
@@ -180,8 +228,13 @@
 </div>
 
 <script>
-    // Replace this with your actual Web App URL from Google Apps Script
+    // Paste your Apps Script URL here
     const API_URL = "https://script.google.com/macros/s/AKfycbzukGRxVhXVJhK5HW3mcKMCxn-eEDtH4H-10bVD-CsMIJZN5cqFC6RTXiSlQe_3Kxg/exec";
+
+    function toggleAddSection() {
+        const card = document.getElementById('addCard');
+        card.classList.toggle('is-collapsed');
+    }
 
     async function loadData() {
         try {
@@ -240,7 +293,6 @@
     }
 
     async function postAction(payload) {
-        // We use 'no-cors' for POST to avoid pre-flight issues with Google Script
         await fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
